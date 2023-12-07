@@ -1,0 +1,14 @@
+//
+// Created by gradhakrish on 12/7/23.
+//
+
+#ifndef KALMAN_FILTER_FOUR_WHEEL_MODEL_KF_BICYCLE_MODEL_H
+#define KALMAN_FILTER_FOUR_WHEEL_MODEL_KF_BICYCLE_MODEL_H
+
+
+class kf_bicycle_model {
+
+};
+
+
+#endif //KALMAN_FILTER_FOUR_WHEEL_MODEL_KF_BICYCLE_MODEL_H
