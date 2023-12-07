@@ -1,0 +1,3 @@
+[submodule "submodules/sensor_data"]
+	path = submodules/sensor_data
+	url = https://github.com/girish-radhakrishnan-250894/simplified_four_wheel_model_cpp.git
