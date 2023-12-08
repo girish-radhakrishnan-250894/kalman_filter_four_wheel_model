@@ -11,7 +11,7 @@ void kf_bicycle_model::operator() ( const state_type &x , state_type &dxdt , con
     // Interpolating the steering input
     double delta_c{0};
 
-    if (t > 4)
+    if (t > 1.5 && t < 2.5)
     {
         delta_c = 0.05;
     }
