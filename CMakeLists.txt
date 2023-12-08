@@ -7,11 +7,11 @@ include_directories(include)
 
 add_subdirectory(submodules)
 
-set(SRC_Files
+set(SRC_FILES
     src/kf_bicycle_model.cpp)
 
-set(HEADER_Files
-        src/kf_bicycle_model.h)
+set(HEADER_FILES
+    src/kf_bicycle_model.h)
 
 add_library(kalman_filter_four_wheel_model
         ${SRC_FILES}
@@ -27,3 +27,5 @@ add_executable(kalman_filter_four_wheel_model_executable
 )
 
 target_link_libraries(kalman_filter_four_wheel_model_executable PUBLIC kalman_filter_four_wheel_model)
+
+set (CMAKE_CXX_FLAGS "-fopenmp -msse2 -mfpmath=sse")
