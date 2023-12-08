@@ -28,4 +28,18 @@ add_executable(kalman_filter_four_wheel_model_executable
 
 target_link_libraries(kalman_filter_four_wheel_model_executable PUBLIC kalman_filter_four_wheel_model)
 
-set (CMAKE_CXX_FLAGS "-fopenmp -msse2 -mfpmath=sse")
+########################################################################################################################
+########################################################################################################################
+# CMAKE CODE TO INCLUDE SCIPLOT FOR PLOTTING #
+########################################################################################################################
+########################################################################################################################
+FetchContent_Declare(sciplot_content
+        GIT_REPOSITORY https://github.com/sciplot/sciplot.git
+        GIT_TAG master)
+
+FetchContent_GetProperties(sciplot_content)
+if(NOT sciplot_content_POPULATED)
+    FetchContent_Populate(sciplot_content)
+endif()
+
+include_directories(${sciplot_content_SOURCE_DIR})
