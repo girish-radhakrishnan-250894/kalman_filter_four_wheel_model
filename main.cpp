@@ -41,20 +41,27 @@ int main() {
 
     // Initial Conditions
     double u_start{100/3.6};
-    Eigen::VectorXd q0 = Eigen::VectorXd::Zero(28);
+    Eigen::VectorXd q0 = Eigen::VectorXd::Zero(30);
     q0(14) = u_start;
     q0(24) = u_start/(input_struct)->r_01;
     q0(25) = u_start/(input_struct)->r_02;
     q0(26) = u_start/(input_struct)->r_03;
     q0(27) = u_start/(input_struct)->r_04;
 
+    // Initializing Kalman Filter Matrices
+    Eigen::Matrix2d P = Eigen::Matrix2d::Zero();
+    Eigen::Matrix2d Q;
+    Q << 0.1, 0, 0, 0.005;
+    double R = 0.01;
+    Eigen::Vector2d x_kap = Eigen::Vector2d::Zero();
+
     // Initializing Vehicle Model Object
     shared_ptr<vehicle_model_fw_simplified> vehicle_model = make_shared<vehicle_model_fw_simplified>((*input_struct));
-    shared_ptr<kf_bicycle_model> simulate_vehicle = make_shared<kf_bicycle_model>((*vehicle_model));
+    shared_ptr<kf_bicycle_model> simulate_vehicle = make_shared<kf_bicycle_model>((*vehicle_model), P, Q, R, x_kap);
 
 
     // Starting Integration
-    state_type x(28);
+    state_type x(30);
     x[14] = u_start;
     x[24] = u_start/(input_struct)->r_01;
     x[25] = u_start/(input_struct)->r_02;
@@ -87,6 +94,8 @@ int main() {
     Vec yaw_rate(x_vec.size());
     Vec roll_angle(x_vec.size());
     Vec chassis_heave(x_vec.size());
+    Vec lat_speed_kf(simulate_vehicle->lat_speed_kf.size());
+    Vec yaw_rate_kf(simulate_vehicle->yaw_rate_kf.size());
 
 
     for (size_t i = 0; i < x_vec.size(); ++i) {
@@ -95,6 +104,12 @@ int main() {
         yaw_rate[i] = x_vec[i][19];
         roll_angle[i] = x_vec[i][3];
         chassis_heave[i] = x_vec[i][2];
+    }
+
+    for (size_t i = 0; i < lat_speed_kf.size(); ++i)
+    {
+        lat_speed_kf[i] = simulate_vehicle->lat_speed_kf[i];
+        yaw_rate_kf[i] = simulate_vehicle->yaw_rate_kf[i];
     }
 
     Plot2D plt_long_speed;
@@ -108,12 +123,14 @@ int main() {
     plt_lat_speed.xlabel("Time [s]");
     plt_lat_speed.ylabel("Lateral Speed [m/s]");
     plt_lat_speed.drawCurve(t_vec, lat_speed).label("Vy [m/s]");
+    plt_lat_speed.drawCurve(t_vec, lat_speed_kf).label("Vy - KF [m/s]");
 
     Plot2D plt_yaw_rate;
     plt_yaw_rate.legend().atOutsideBottom().displayHorizontal().displayExpandWidthBy(2);
     plt_yaw_rate.xlabel("Time [s]");
     plt_yaw_rate.ylabel("Yaw Rate [deg/s]");
     plt_yaw_rate.drawCurve(t_vec, yaw_rate*57.4).label("r [deg/s]");
+    plt_yaw_rate.drawCurve(t_vec, yaw_rate_kf*57.4).label("r - KF [deg/s]");
 
     Plot2D plt_roll_angle;
     plt_roll_angle.legend().atOutsideBottom().displayHorizontal().displayExpandWidthBy(2);
