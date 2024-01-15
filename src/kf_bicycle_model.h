@@ -15,13 +15,18 @@ class kf_bicycle_model {
 
     vehicle_model_fw_simplified vehicle_model;
 
+    Eigen::Vector2d x_kap;
     Eigen::Matrix2d P;
     Eigen::Matrix2d Q;
     double R;
 
 public:
+    std::vector<double> yaw_rate_kf;
+    std::vector<double> lat_speed_kf;
+
     kf_bicycle_model(vehicle_model_fw_simplified &_vehicle_model);
     kf_bicycle_model(vehicle_model_fw_simplified &_vehicl_model, Eigen::Matrix2d _P, Eigen::Matrix2d _Q, double _R);
+    kf_bicycle_model(vehicle_model_fw_simplified &_vehicl_model, Eigen::Matrix2d _P, Eigen::Matrix2d _Q, double _R, Eigen::Vector2d _x_kap);
 
     const Eigen::Matrix2d &getP() const {return P;}
     const Eigen::Matrix2d &getQ() const {return Q;}
