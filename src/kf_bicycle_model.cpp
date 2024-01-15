@@ -8,6 +8,8 @@ kf_bicycle_model::kf_bicycle_model(vehicle_model_fw_simplified &_vehicle_model) 
 
 kf_bicycle_model::kf_bicycle_model(vehicle_model_fw_simplified &_vehicl_model, Eigen::Matrix2d _P, Eigen::Matrix2d _Q,
                                    double _R) : vehicle_model(_vehicl_model), P(_P), Q(_Q), R(_R) {}
+kf_bicycle_model::kf_bicycle_model(vehicle_model_fw_simplified &_vehicl_model, Eigen::Matrix2d _P, Eigen::Matrix2d _Q,
+                                   double _R, Eigen::Vector2d _x_kap) : vehicle_model(_vehicl_model), P(_P), Q(_Q), R(_R), x_kap(_x_kap) {}
 
 void kf_bicycle_model::operator() ( const state_type &x , state_type &dxdt , const double  t  )
 {
@@ -22,7 +24,7 @@ void kf_bicycle_model::operator() ( const state_type &x , state_type &dxdt , con
     // Initializing a driving torque input
     double m_d_c{0};
 
-    Eigen::VectorXd q = Eigen::VectorXd::Zero(28);
+    Eigen::VectorXd q = Eigen::VectorXd::Zero(30);
 
     for (int i = 0; i < x.size(); ++i) {
         q(i) = x[i];
@@ -43,14 +45,14 @@ void kf_bicycle_model::operator() ( const state_type &x , state_type &dxdt , con
     // KALMAN FILTER
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Initializing Kalman Filter States
-    Eigen::Vector2d x_kap = Eigen::Vector2d::Zero();
-    x_kap << x[28], x[29];
+//    // Initializing Kalman Filter States
+//    Eigen::Vector2d x_kap = Eigen::Vector2d::Zero();
+//    x_kap << q[28], q[29];
 
     double U{delta_c};
 
     // Initializing Output Vector
-    double y{x[19]};
+    double y{q[19]};
 
     // Initializing Vehicle Inputs
     double m_s{vehicle_model.get_model_input().m_s}, I_zz{vehicle_model.get_model_input().J_z};
@@ -60,11 +62,12 @@ void kf_bicycle_model::operator() ( const state_type &x , state_type &dxdt , con
 
     // Kalman Filter - System Matrix
     Eigen::Matrix2d kf_A = Eigen::Matrix2d::Zero();
-    kf_A << -( C_y_1 + C_y_2 )/m_s , u + (a*C_y_1 - b*C_y_2)/(m_s*u),
+    kf_A << ( C_y_1 + C_y_2 )/m_s , u + (a*C_y_1 - b*C_y_2)/(m_s*u),
             (a*C_y_1 - b*C_y_2)/(I_zz*u), (a*a*C_y_1 + b*b*C_y_2)/(I_zz*u);
+    kf_A = -kf_A;
 
     Eigen::Vector2d kf_B = Eigen::Vector2d::Zero();
-    kf_B << C_y_1/m_s , (a*C_y_1)/(I_zz*u);
+    kf_B << C_y_1/m_s , (a*C_y_1)/(I_zz);
 
     Eigen::RowVector2d kf_C(2);
     kf_C << 0, 1;
@@ -83,6 +86,10 @@ void kf_bicycle_model::operator() ( const state_type &x , state_type &dxdt , con
     x_kap_plus = x_kap_minus + L_k*(y - (kf_C*x_kap_minus));
 
     P = (Eigen::Matrix2d::Identity() - L_k*kf_C)*P_k_minus;
+    x_kap = x_kap_plus;
+
+    lat_speed_kf.push_back(x_kap[0]);
+    yaw_rate_kf.push_back(x_kap[1]);
 
 
 
@@ -98,6 +105,11 @@ void kf_bicycle_model::operator() ( const state_type &x , state_type &dxdt , con
     {
         dxdt[i] = (Qdot(i));
     }
+
+
+
+//    dxdt[28] = x_kap_plus(0);
+//    dxdt[29] = x_kap_plus(1);
 
 
 
